@@ -37,8 +37,21 @@ const io = new Server(httpServer, {
   },
 });
 
+const onlineUsers = new Map();
+
 io.on("connection", (socket) => {
   console.log("Usuário conectado:", socket.id);
+  socket.on("user_connected", (user) => {
+    onlineUsers.set(socket.id, user);
+  
+    const uniqueUsers = Array.from(
+      new Map(
+        Array.from(onlineUsers.values()).map((user) => [user.id, user])
+      ).values()
+    );
+  
+    io.emit("online_users", uniqueUsers);
+  });
 
   socket.on("join_forum", (forumId) => {
     socket.join(`forum_${forumId}`);
@@ -50,6 +63,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    onlineUsers.delete(socket.id);
+  
+    const uniqueUsers = Array.from(
+      new Map(
+        Array.from(onlineUsers.values()).map((user) => [user.id, user])
+      ).values()
+    );
+  
+    io.emit("online_users", uniqueUsers);
+  
     console.log("Usuário desconectado:", socket.id);
   });
 });

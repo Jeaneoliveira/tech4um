@@ -42,20 +42,31 @@ export function Chat({ forum, onBack }: ChatProps) {
       console.error("Erro ao carregar mensagens", error);
     }
   }
+  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
 
   useEffect(() => {
     loadMessages();
-
+  
+    socket.emit("user_connected", {
+      id: user.id,
+      username: user.username,
+    });
+  
+    socket.on("online_users", (users) => {
+      setOnlineUsers(users);
+    });
+  
     socket.emit("join_forum", forum.id);
-
+  
     socket.on("receive_message", (message: Message) => {
       if (message.forum_id === forum.id) {
         setMessages((prev) => [...prev, message]);
       }
     });
-
+  
     return () => {
       socket.off("receive_message");
+      socket.off("online_users");
     };
   }, [forum.id]);
 
@@ -77,7 +88,15 @@ export function Chat({ forum, onBack }: ChatProps) {
       <button onClick={onBack}>← Voltar</button>
 
       <h1>{forum.name}</h1>
+      <h3>Participantes Online</h3>
 
+<div>
+  {onlineUsers.map((onlineUser) => (
+    <p key={onlineUser.id}>
+      🟢 {onlineUser.username}
+    </p>
+  ))}
+</div>
       <div
         style={{
           border: "1px solid #ccc",
