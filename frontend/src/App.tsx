@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
-import { ChatTest } from "./pages/ChatTest";
+import { Chat } from "./pages/Chat";
 
 type Forum = {
   id: number;
@@ -19,7 +19,7 @@ function App() {
   }
 
   if (selectedForum) {
-    return <ChatTest />;
+    return <Chat forum={selectedForum} onBack={() => setSelectedForum(null)} />;
   }
 
   return <Dashboard onEnterForum={(forum) => setSelectedForum(forum)} />;
