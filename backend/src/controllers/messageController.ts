@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Message } from "../models/Message";
+import { User } from "../models/User";
 
 export const createMessage = async (req: Request, res: Response) => {
   try {
@@ -39,13 +40,21 @@ export const getMessagesByForum = async (req: Request, res: Response) => {
     const visibleMessages = messages.filter((message: any) => {
       if (!message.is_private) return true;
 
-      return (
-        message.sender_id === user.id ||
-        message.receiver_id === user.id
-      );
+      return message.sender_id === user.id || message.receiver_id === user.id;
     });
 
-    return res.json(visibleMessages);
+    const messagesWithUsers = await Promise.all(
+      visibleMessages.map(async (message: any) => {
+        const sender: any = await User.findByPk(message.sender_id);
+
+        return {
+          ...message.toJSON(),
+          username: sender?.username || `Usuário ${message.sender_id}`,
+        };
+      })
+    );
+
+    return res.json(messagesWithUsers);
   } catch (error) {
     return res.status(500).json({ message: "Erro ao buscar mensagens" });
   }

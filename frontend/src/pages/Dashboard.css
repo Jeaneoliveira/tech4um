@@ -71,25 +71,31 @@
   }
   
   .dashboard-intro {
-    margin: 36px 0 24px;
+    margin-top: 40px;
+    margin-bottom: 24px;
+    text-align: left;
   }
   
   .dashboard-intro h1 {
-    color: #6f7392;
-    font-size: 32px;
-    margin-bottom: 4px;
+    margin: 0;
+    color: #7c7c97;
+    font-size: 40px;
+    font-weight: 300;
+    line-height: 1;
   }
   
   .dashboard-intro p {
-    color: #212121;
-    font-weight: 700;
+    margin-top: 8px;
+    color: #585858;
+    font-size: 18px;
+    font-weight: 600;
   }
   
   .create-forum {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
-    gap: 12px;
-    margin-bottom: 28px;
+    gap: 14px;
+    margin-top: 24px;
   }
   
   .create-forum input {
@@ -117,43 +123,42 @@
   
   .forums-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(260px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
   }
   
   .forum-card {
     background: white;
     border-radius: 18px;
-    padding: 24px;
-    min-height: 160px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    padding: 28px;
+    min-height: 210px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: 0.2s;
   }
   
   .forum-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
   }
   
   .forum-card span {
-    color: #f25c05;
-    font-weight: 700;
+    color: #ff5a00;
     font-size: 13px;
+    font-weight: 700;
   }
   
   .forum-card h2 {
     color: #1f78be;
-    font-size: 24px;
-    margin: 8px 0;
+    font-size: 28px;
+    margin: 10px 0 8px;
   }
   
   .forum-card p {
-    color: #757575;
+    color: #6f6f6f;
     font-size: 14px;
-    min-height: 42px;
+    line-height: 1.5;
   }
-  
   .forum-card footer {
     margin-top: 18px;
     display: flex;

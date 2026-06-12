@@ -11,18 +11,41 @@ type Forum = {
 };
 
 function App() {
-  const [isLogged, setIsLogged] = useState(!!localStorage.getItem("token"));
   const [selectedForum, setSelectedForum] = useState<Forum | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const isLogged = !!localStorage.getItem("token");
 
-  if (!isLogged) {
-    return <Login onLogin={() => setIsLogged(true)} />;
+  if (showLogin) {
+    return (
+      <Login
+        onLogin={() => {
+          setShowLogin(false);
+        }}
+      />
+    );
   }
 
   if (selectedForum) {
-    return <Chat forum={selectedForum} onBack={() => setSelectedForum(null)} />;
+    return (
+      <Chat
+        forum={selectedForum}
+        onBack={() => setSelectedForum(null)}
+      />
+    );
   }
 
-  return <Dashboard onEnterForum={(forum) => setSelectedForum(forum)} />;
+  return (
+    <Dashboard
+      onEnterForum={(forum) => {
+        if (!isLogged) {
+          setShowLogin(true);
+          return;
+        }
+
+        setSelectedForum(forum);
+      }}
+    />
+  );
 }
 
 export default App;
