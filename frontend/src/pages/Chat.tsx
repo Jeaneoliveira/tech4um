@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { api } from "../services/api";
 import "./Chat.css";
-import { useAuth } from "../contexts/AuthContext";
-
-const socket = io("http://localhost:3000");    
+import { useAppContext } from "../contexts/AppContext";
 
 type Forum = {
   id: number;
   name: string;
   description?: string;
   created_by?: number;
+  creator_username?: string;
 };
 
 type Message = {
@@ -23,6 +21,7 @@ type Message = {
   receiver_name?: string | null;
   is_private?: boolean;
   time?: string;
+  created_at?: string;
 };
 
 type Participant = {
@@ -40,6 +39,17 @@ type ChatProps = {
   onBack: () => void;
 };
 
+function formatTime(message: Message): string {
+  if (message.time) return message.time;
+  if (message.created_at) {
+    return new Date(message.created_at).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+  return "";
+}
+
 export function Chat({ forum, onBack }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState("");
@@ -48,25 +58,22 @@ export function Chat({ forum, onBack }: ChatProps) {
   const [privateTo, setPrivateTo] = useState<Participant | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
 
-  const { user, token } = useAuth();
+  const { socket, user, token } = useAppContext();
 
   if (!user) {
     return null;
   }
 
-async function loadMessages() {
-  try {
-    const response = await api.get(`/messages/${forum.id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    setMessages(response.data);
-  } catch (error) {
-    console.error("Erro ao carregar mensagens", error);
+  async function loadMessages() {
+    try {
+      const response = await api.get(`/messages/${forum.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar mensagens", error);
+    }
   }
-}
 
   async function loadForums() {
     try {
@@ -81,27 +88,23 @@ async function loadMessages() {
     loadMessages();
     loadForums();
 
-    socket.emit("user_connected", {
-      id: user.id,
-      username: user.username,
-    });
-
     socket.emit("join_forum", forum.id);
+
+    // Re-emite user_connected para forçar o servidor a reenviar online_users
+    // agora que o listener já está registrado abaixo
+    socket.emit("user_connected", { id: user.id, username: user.username });
 
     socket.on("receive_message", (message: Message) => {
       if (message.forum_id === forum.id) {
         setMessages((prev) => [...prev, message]);
       }
     });
-    
+
     socket.on("online_users", (users: OnlineUser[]) => {
       setParticipants(
         users
           .filter((u) => u.id !== user.id)
-          .map((u) => ({
-            id: u.id,
-            name: u.username,
-          }))
+          .map((u) => ({ id: u.id, name: u.username }))
       );
     });
 
@@ -109,48 +112,44 @@ async function loadMessages() {
       socket.off("receive_message");
       socket.off("online_users");
     };
-    
   }, [forum.id, user, token]);
 
-async function sendMessage() {
-  if (!content.trim()) return;
+  async function sendMessage() {
+    if (!content.trim()) return;
 
-  try {
-    const response = await api.post(
-      "/messages",
-      {
-        forum_id: forum.id,
-        content,
-        receiver_id: privateTo?.id || null,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const response = await api.post(
+        "/messages",
+        {
+          forum_id: forum.id,
+          content,
+          receiver_id: privateTo?.id || null,
         },
-      }
-    );
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    const message = {
-      ...response.data,
-      username: user.username,
-      receiver_id: privateTo?.id || null,
-      receiver_name: privateTo?.name || null,
-      is_private: !!privateTo,
-      time: new Date().toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
+      const message: Message = {
+        ...response.data,
+        username: user.username,
+        receiver_id: privateTo?.id || null,
+        receiver_name: privateTo?.name || null,
+        is_private: !!privateTo,
+        time: new Date().toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
 
-    socket.emit("send_message", message);
-
-    setContent("");
-    setPrivateTo(null);
-  } catch (error) {
-    console.error("Erro ao enviar mensagem:", error);
-    alert("Erro ao enviar mensagem");
+      socket.emit("send_message", message);
+      setContent("");
+      setPrivateTo(null);
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      alert("Erro ao enviar mensagem");
+    }
   }
-}
 
   return (
     <main className="chat-page">
@@ -171,7 +170,8 @@ async function sendMessage() {
               <h3>Participantes</h3>
             </div>
 
-            {participants.map((participant, index) => (              <div
+            {participants.map((participant, index) => (
+              <div
                 key={participant.id}
                 className="participant-item"
                 onClick={() => setPrivateTo(participant)}
@@ -179,12 +179,8 @@ async function sendMessage() {
                 <div className={`participant-avatar color-${index % 6}`}>
                   {participant.name.charAt(0)}
                 </div>
-
-              <span className="participant-name">
-                  {participant.name}
-              </span>
-
-              <span className="online-dot"></span>
+                <span className="participant-name">{participant.name}</span>
+                <span className="online-dot"></span>
               </div>
             ))}
           </aside>
@@ -194,7 +190,7 @@ async function sendMessage() {
           <div className="chat-forum-header">
             <h3>{forum.name}</h3>
             <span>
-            Criado por: <strong>{user.username}</strong>
+              Criado por: <strong>{forum.creator_username ?? `Usuário #${forum.created_by}`}</strong>
             </span>
           </div>
 
@@ -204,19 +200,14 @@ async function sendMessage() {
                 key={index}
                 className={`message ${message.is_private ? "private-message" : ""}`}
               >
-               <div className="message-header">
-                <strong>{message.username || `Usuário ${message.sender_id}`}</strong>
-
-           <span className="message-time">
-                {message.time}
-           </span>
-      </div>
+                <div className="message-header">
+                  <strong>{message.username || `Usuário ${message.sender_id}`}</strong>
+                  <span className="message-time">{formatTime(message)}</span>
+                </div>
 
                 {message.is_private && (
-  <span className="private-label">
-    🔒 Mensagem privada
-  </span>
-)}
+                  <span className="private-label">🔒 Mensagem privada</span>
+                )}
 
                 <p>{message.content}</p>
               </div>
@@ -240,7 +231,6 @@ async function sendMessage() {
               onChange={(e) => setContent(e.target.value)}
               placeholder="Escreva aqui uma mensagem..."
             />
-
             <button onClick={sendMessage}>➤</button>
           </div>
         </div>
@@ -252,7 +242,6 @@ async function sendMessage() {
               className={`room-card ${item.id === forum.id ? "active-room" : ""}`}
             >
               <strong>{item.name}</strong>
-              <span>Um 4um • 70 pessoas</span>
             </div>
           ))}
         </aside>

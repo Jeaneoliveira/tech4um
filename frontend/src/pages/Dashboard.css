@@ -182,3 +182,13 @@
     width: 36px;
     height: 36px;
   }
+   
+.forum-card footer {
+  justify-content: center;
+  gap: 12px;
+}
+ 
+.forum-card small {
+  text-align: center;
+}
+ 

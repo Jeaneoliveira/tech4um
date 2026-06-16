@@ -1,51 +1,24 @@
-import { useState } from "react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Chat } from "./pages/Chat";
-
-type Forum = {
-  id: number;
-  name: string;
-  description?: string;
-  created_by: number;
-};
+import { useAppContext } from "./contexts/AppContext";
 
 function App() {
-  const [selectedForum, setSelectedForum] = useState<Forum | null>(null);
-  const [showLogin, setShowLogin] = useState(false);
-  const isLogged = !!localStorage.getItem("token");
+  // Tudo vem do context — sem props drilling, sem useState local de auth
+  const { user, token, selectedForum, setSelectedForum } = useAppContext();
 
-  if (showLogin) {
-    return (
-      <Login
-        onLogin={() => {
-          setShowLogin(false);
-        }}
-      />
-    );
+  // Não logado → Login
+  if (!user || !token) {
+    return <Login />;
   }
 
+  // Fórum selecionado → Chat
   if (selectedForum) {
-    return (
-      <Chat
-        forum={selectedForum}
-        onBack={() => setSelectedForum(null)}
-      />
-    );
+    return <Chat forum={selectedForum} onBack={() => setSelectedForum(null)} />;
   }
 
-  return (
-    <Dashboard
-      onEnterForum={(forum) => {
-        if (!isLogged) {
-          setShowLogin(true);
-          return;
-        }
-
-        setSelectedForum(forum);
-      }}
-    />
-  );
+  // Default → Dashboard
+  return <Dashboard onEnterForum={setSelectedForum} />;
 }
 
 export default App;

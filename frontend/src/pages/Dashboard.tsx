@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import "./Dashboard.css";
+import { useAppContext } from "../contexts/AppContext";
 
 type Forum = {
   id: number;
   name: string;
   description?: string;
   created_by: number;
+  creator_username?: string;
 };
 
 type DashboardProps = {
@@ -18,8 +20,7 @@ export function Dashboard({ onEnterForum }: DashboardProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const token = localStorage.getItem("token");
+  const { user, token, logout } = useAppContext();
 
   async function loadForums() {
     const response = await api.get("/forums");
@@ -35,11 +36,7 @@ export function Dashboard({ onEnterForum }: DashboardProps) {
     await api.post(
       "/forums",
       { name, description },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     setName("");
@@ -62,20 +59,13 @@ export function Dashboard({ onEnterForum }: DashboardProps) {
         <p>Seu fórum sobre tecnologia!</p>
 
         <div className="user-info">
-  <div className="user-text">
-    <strong>{user.username}</strong>
-    <span>{user.email}</span>
-  </div>
+          <div className="user-text">
+            <strong>{user?.username}</strong>
+            <span>{user?.email}</span>
+          </div>
 
-  <button
-    onClick={() => {
-      localStorage.clear();
-      window.location.reload();
-    }}
-  >
-    Sair
-  </button>
-</div>
+          <button onClick={logout}>Sair</button>
+        </div>
       </header>
 
       <section className="dashboard-intro">
@@ -106,13 +96,12 @@ export function Dashboard({ onEnterForum }: DashboardProps) {
             className="forum-card"
             onClick={() => onEnterForum(forum)}
           >
-            <span>Tópico em destaque!</span>
+       
             <h2>{forum.name}</h2>
             <p>{forum.description || "Sem descrição"}</p>
 
             <footer>
-              <small>Criado por: usuário #{forum.created_by}</small>
-              <button>+{forum.id}</button>
+              <small>Criado por: {forum.creator_username}</small>
             </footer>
           </article>
         ))}
