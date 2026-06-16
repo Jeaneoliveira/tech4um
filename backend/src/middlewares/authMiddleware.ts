@@ -25,7 +25,7 @@ export const authMiddleware = (
       process.env.JWT_SECRET as string
     ) as TokenPayload;
 
-    (req as any).user = decoded;
+    req.user = decoded;
 
     return next();
   } catch {

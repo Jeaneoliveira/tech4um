@@ -5,7 +5,7 @@ export const createForum = async (req: Request, res: Response) => {
   try {
     const { name, description } = req.body;
 
-    const user = (req as any).user;
+    const user = req.user!;
 
     const forum = await Forum.create({
       name,
@@ -20,7 +20,6 @@ export const createForum = async (req: Request, res: Response) => {
     });
   }
 };
-
 export const getForums = async (_req: Request, res: Response) => {
   try {
     const forums = await Forum.findAll();

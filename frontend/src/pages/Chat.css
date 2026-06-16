@@ -319,3 +319,12 @@
   font-size: 11px;
   color: #999;
 }
+
+.online-dot {
+  width: 9px;
+  height: 9px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
