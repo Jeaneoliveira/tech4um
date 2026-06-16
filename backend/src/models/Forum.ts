@@ -28,3 +28,6 @@ export const Forum = sequelize.define("Forum", {
   tableName: "forums",
   timestamps: false,
 });
+import { User } from "./User";
+
+Forum.belongsTo(User, { foreignKey: "created_by", as: "creator" });

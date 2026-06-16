@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { Forum } from "../models/Forum";
+import { User } from "../models/User";
 
-export const createForum = async (req: Request, res: Response) => {
+export const createForum = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, description } = req.body;
-
+    const { name, description } = req.body as { name: string; description?: string };
     const user = req.user!;
 
     const forum = await Forum.create({
@@ -13,21 +13,38 @@ export const createForum = async (req: Request, res: Response) => {
       created_by: user.id,
     });
 
-    return res.status(201).json(forum);
-  } catch (error) {
-    return res.status(500).json({
-      message: "Erro ao criar fórum",
-    });
+    res.status(201).json(forum);
+  } catch {
+    res.status(500).json({ message: "Erro ao criar fórum" });
   }
 };
-export const getForums = async (_req: Request, res: Response) => {
-  try {
-    const forums = await Forum.findAll();
 
-    return res.json(forums);
-  } catch (error) {
-    return res.status(500).json({
-      message: "Erro ao listar fóruns",
+export const getForums = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const forums = await Forum.findAll({
+      include: [
+        {
+          model: User,
+          as: "creator",
+          attributes: ["username"],
+        },
+      ],
     });
+
+    // Retorna os fóruns com creator_username no nível raiz
+    const result = forums.map((forum) => {
+      const json = forum.toJSON() as unknown as Record<string, unknown> & {
+        creator?: { username: string };
+      };
+
+      return {
+        ...json,
+        creator_username: json.creator?.username ?? `Usuário #${forum.getDataValue("created_by")}`,
+      };
+    });
+
+    res.json(result);
+  } catch {
+    res.status(500).json({ message: "Erro ao listar fóruns" });
   }
 };
