@@ -7,14 +7,19 @@ let forumId = 1;
 
 describe("Rotas de autenticação", () => {
   it("deve cadastrar um usuário", async () => {
+    const uniqueId = Date.now();
+  
     const response = await request(app)
       .post("/auth/register")
       .send({
-        username: "Aline Teste",
-        email: `aline${Date.now()}@email.com`,
+        username: `LoginTeste${uniqueId}`,
+        email: `login${uniqueId}@email.com`,
         password: "123456",
       });
-
+  
+    expect(response.status).toBe(201);
+  
+  
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty("token");
     expect(response.body).toHaveProperty("user");
@@ -23,27 +28,29 @@ describe("Rotas de autenticação", () => {
   });
 
   it("deve fazer login", async () => {
-    const email = `login${Date.now()}@email.com`;
-
+    const uniqueId = Date.now();
+  
+    const email = `login${uniqueId}@email.com`;
+  
     await request(app)
       .post("/auth/register")
       .send({
-        username: "Login Teste",
+        username: `LoginTeste${uniqueId}`,
         email,
         password: "123456",
       });
-
+  
     const response = await request(app)
       .post("/auth/login")
       .send({
         email,
         password: "123456",
       });
-
+  
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("token");
     expect(response.body).toHaveProperty("user");
-
+  
     token = response.body.token;
   });
 });
