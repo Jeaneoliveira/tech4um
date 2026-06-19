@@ -22,7 +22,6 @@ export function authMiddleware(
       process.env.JWT_SECRET as string
     ) as AuthenticatedUser;
 
-    // req.user agora é AuthenticatedUser — sem 'any'
     req.user = {
       id: payload.id,
       username: payload.username,

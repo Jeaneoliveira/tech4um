@@ -21,7 +21,7 @@ import {
   };
   
   type AppContextType = {
-    // Auth (antes no AuthContext)
+   
     user: User | null;
     token: string | null;
     isLogged: boolean;
@@ -35,7 +35,7 @@ import {
   };
     
   const socket = io("http://localhost:3000", {
-    autoConnect: false, // conecta só depois do login
+    autoConnect: false, 
   });
     
   const AppContext = createContext<AppContextType | null>(null);

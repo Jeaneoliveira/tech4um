@@ -90,8 +90,6 @@ export function Chat({ forum, onBack }: ChatProps) {
 
     socket.emit("join_forum", forum.id);
 
-    // Re-emite user_connected para forçar o servidor a reenviar online_users
-    // agora que o listener já está registrado abaixo
     socket.emit("user_connected", { id: user.id, username: user.username });
 
     socket.on("receive_message", (message: Message) => {

@@ -10,7 +10,7 @@ export const createMessage = async (req: Request, res: Response): Promise<void> 
       receiver_id?: number;
     };
 
-    const user = req.user!; // tipado como AuthenticatedUser via express.d.ts
+    const user = req.user!; 
 
     if (!forum_id || !content) {
       res.status(400).json({ message: "Fórum e conteúdo são obrigatórios" });
@@ -36,7 +36,7 @@ export const getMessagesByForum = async (req: Request, res: Response): Promise<v
     const forumId = Number(req.params.forumId);
     const user = req.user!;
 
-    // JOIN com User — resolve N+1 (uma query só)
+   // resolve N+1 (uma query só)
     const messages = await Message.findAll({
       where: { forum_id: forumId },
       include: [
@@ -49,7 +49,6 @@ export const getMessagesByForum = async (req: Request, res: Response): Promise<v
       order: [["created_at", "ASC"]],
     });
 
-    // Filtra mensagens privadas: só remetente e destinatário veem
     const visibleMessages = messages.filter((msg) => {
       if (!msg.is_private) return true;
       return msg.sender_id === user.id || msg.receiver_id === user.id;

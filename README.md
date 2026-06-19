@@ -77,6 +77,58 @@ O sistema utiliza Socket.IO para permitir:
 * Entrada em salas de conversa
 * Comunicação em tempo real entre usuários
 
+
+## 🧪 Testes Automatizados
+
+O projeto conta com testes automatizados de integração para validar as principais funcionalidades da API.
+
+### Tecnologias
+
+* Vitest
+* Supertest
+
+### Rotas testadas
+
+#### Autenticação
+
+* `POST /auth/register` — cadastro de usuários
+* `POST /auth/login` — autenticação e geração de token JWT
+
+#### Fóruns
+
+* `POST /forums` — criação de fóruns autenticados
+
+#### Mensagens
+
+* `GET /messages/:forumId` — listagem de mensagens de um fórum
+
+### Executando os testes
+
+```bash
+cd backend
+npm test
+```
+
+### Cenários validados
+
+* Cadastro de usuário
+* Login com credenciais válidas
+* Geração e utilização de token JWT
+* Acesso a rotas protegidas
+* Criação de fóruns
+* Listagem de mensagens por fórum
+
+Resultado esperado:
+
+```txt
+✓ deve cadastrar um usuário
+✓ deve fazer login
+✓ deve criar um fórum
+✓ deve listar mensagens de um fórum
+
+Tests 4 passed
+```
+
 ## 📸 Funcionalidades Demonstradas
 
 * Login e autenticação
@@ -85,6 +137,7 @@ O sistema utiliza Socket.IO para permitir:
 * Chat em tempo real
 * Mensagens privadas
 * Navegação entre salas
+
 
 ## 👩‍💻 Desenvolvido por
 
